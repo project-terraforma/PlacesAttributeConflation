@@ -85,7 +85,7 @@ function field(label, value) { return '<div class="field"><div class="label">' +
 function selectField(label, key, values) {
   const ep = episodes[idx];
   const opts = [''].concat(values).map(v => '<option value="' + escapeHtml(v) + '" ' + (ep[key]===v?'selected':'') + '>' + escapeHtml(v) + '</option>').join('');
-  return '<div class="field"><div class="label">' + escapeHtml(label) + '</div><select onchange="setField(\'' + key + '\', this.value)">' + opts + '</select></div>';
+  return '<div class="field"><div class="label">' + escapeHtml(label) + '</div><select data-key="' + escapeHtml(key) + '" onchange="setField(this.dataset.key, this.value)">' + opts + '</select></div>';
 }
 function renderCase() {
   if (!episodes.length) { document.getElementById('case').innerHTML = '<div class="card">No episodes loaded.</div>'; return; }
@@ -99,8 +99,8 @@ function renderCase() {
     + field('Overture id', ep.place?.overture_id || ep.place?.gers_id) + '</div></div><div class="card"><h3>Labels</h3><div class="grid">'
     + field('Case type', ep.case_type) + selectField('Website label', 'website_label', labelData.website_labels)
     + selectField('Identity label', 'identity_label', labelData.identity_labels) + field('Truth source type', ep.truth_source_type)
-    + field('Label origin', ep.label_origin) + field('Difficulty', ep.difficulty) + '</div><p><label><input type="checkbox" ' + (ep.expected_abstain === true ? 'checked' : '')
-    + ' onchange="setField(\'expected_abstain\', this.checked)" /> Expected abstain</label></p><textarea placeholder="Reviewer notes" oninput="setField(\'reviewer_notes\', this.value)">'
+    + field('Label origin', ep.label_origin) + field('Difficulty', ep.difficulty) + '</div><p><label><input type="checkbox" data-key="expected_abstain" ' + (ep.expected_abstain === true ? 'checked' : '')
+    + ' onchange="setField(this.dataset.key, this.checked)" /> Expected abstain</label></p><textarea placeholder="Reviewer notes" data-key="reviewer_notes" oninput="setField(this.dataset.key, this.value)">'
     + escapeHtml(ep.reviewer_notes || '') + '</textarea></div><div class="card"><h3>Evidence pages (' + pages.length + ')</h3>'
     + pages.map(p => '<div class="page"><div><a href="' + escapeHtml(p.url) + '" target="_blank" rel="noreferrer">' + escapeHtml(p.title || p.url) + '</a></div><div class="muted">' + escapeHtml(p.source_type) + ' · ' + escapeHtml(p.evidence_role) + ' · ' + escapeHtml(p.source_family_id) + ' · ' + escapeHtml(p.layer) + '</div><div class="muted">Query: ' + escapeHtml(p.query) + '</div><p>' + escapeHtml((p.page_text || '').slice(0, 900)) + '</p></div>').join('')
     + '</div>';
