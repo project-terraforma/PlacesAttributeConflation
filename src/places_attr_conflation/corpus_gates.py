@@ -56,6 +56,16 @@ def evaluate_website_label_coverage(episodes: Iterable[ReplayEpisode]) -> dict[s
     }
 
 
+def _wrong_branch_count(episodes: Iterable[ReplayEpisode]) -> int:
+    """Count unique episodes with wrong-branch evidence, without double-counting labels."""
+
+    return sum(
+        1
+        for episode in episodes
+        if episode.identity_label == "BRANCH_AMBIGUITY" or episode.case_type == "WRONG_BRANCH"
+    )
+
+
 def evaluate_replay_corpus_v1_gate(
     episodes: Iterable[ReplayEpisode],
     thresholds: ReplayCorpusV1Thresholds | None = None,
@@ -70,6 +80,7 @@ def evaluate_replay_corpus_v1_gate(
     case_type_counts = stats.get("episodes_by_case_type", {}) or {}
     total = int(stats.get("episodes_total", 0))
     website_total = int(website.get("website_episodes_total", 0))
+    wrong_branch_count = _wrong_branch_count(episodes)
     checks = {
         "total_replay_cases": total >= thresholds.min_total_replay_cases,
         "website_cases": int(stats.get("website_heavy_count", 0)) >= thresholds.min_website_cases,
@@ -77,7 +88,7 @@ def evaluate_replay_corpus_v1_gate(
         "reviewed_cases": int(stats.get("reviewed_count", 0)) >= thresholds.min_reviewed_cases,
         "expected_abstain_cases": int(stats.get("abstention_expected_count", 0)) >= thresholds.min_expected_abstain_cases,
         "stale_website_cases": int(website.get("stale_website_cases", 0)) >= thresholds.min_stale_website_cases,
-        "wrong_branch_cases": (int(identity_counts.get("BRANCH_AMBIGUITY", 0)) + int(case_type_counts.get("WRONG_BRANCH", 0))) >= thresholds.min_wrong_branch_cases,
+        "wrong_branch_cases": wrong_branch_count >= thresholds.min_wrong_branch_cases,
         "aggregator_echo_cases": int(case_type_counts.get("AGGREGATOR_ECHO", 0)) >= thresholds.min_aggregator_echo_cases,
         "new_entity_same_address_cases": int(identity_counts.get("NEW_ENTITY_SAME_ADDRESS", 0)) >= thresholds.min_new_entity_same_address_cases,
         "website_label_coverage_rate": float(website.get("website_label_coverage_rate", 0.0)) >= thresholds.min_website_label_coverage_rate,
@@ -89,6 +100,9 @@ def evaluate_replay_corpus_v1_gate(
         "thresholds": asdict(thresholds),
         "stats": stats,
         "website_labels": website,
+        "counts": {
+            "wrong_branch_cases": wrong_branch_count,
+        },
         "coverage": {
             "case_type_coverage_rate": int(stats.get("episodes_with_case_type", 0)) / total if total else 0.0,
             "identity_label_coverage_rate": int(stats.get("episodes_with_identity_label", 0)) / total if total else 0.0,
