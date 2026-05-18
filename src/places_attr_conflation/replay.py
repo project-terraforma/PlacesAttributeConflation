@@ -48,6 +48,8 @@ class FetchedPage:
     page_text: str = ""
     source_type: str = "unknown"
     extracted_values: dict[str, str] = field(default_factory=dict)
+    evidence_role: str = ""
+    source_family_id: str = ""
     recency_days: float | None = None
     zombie_score: float = 0.0
     identity_change_score: float = 0.0
@@ -60,6 +62,8 @@ class FetchedPage:
             "page_text": self.page_text,
             "source_type": self.source_type,
             "extracted_values": dict(self.extracted_values),
+            "evidence_role": self.evidence_role,
+            "source_family_id": self.source_family_id,
             "recency_days": self.recency_days,
             "zombie_score": self.zombie_score,
             "identity_change_score": self.identity_change_score,
@@ -85,6 +89,8 @@ class FetchedPage:
             page_text=str(payload.get("page_text", payload.get("snippet", ""))),
             source_type=str(payload.get("source_type", "unknown")),
             extracted_values=_coerce_mapping(payload.get("extracted_values", {})),
+            evidence_role=str(payload.get("evidence_role", "")),
+            source_family_id=str(payload.get("source_family_id", "")),
             recency_days=payload.get("recency_days"),
             zombie_score=_coerce_float(payload.get("zombie_score", 0.0)),
             identity_change_score=_coerce_float(payload.get("identity_change_score", 0.0)),
@@ -161,6 +167,16 @@ class ReplayEpisode:
     gold_value: str
     search_attempts: list[SearchAttempt]
     final_decision: FinalDecision | None = None
+    identity_label: str = ""
+    case_type: str = ""
+    expected_decision: str = ""
+    expected_abstain: bool | None = None
+    truth_source_type: str = ""
+    label_origin: str = ""
+    website_label: str = ""
+    difficulty: str = ""
+    review_status: str = ""
+    reviewer_notes: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         payload = {
@@ -170,6 +186,26 @@ class ReplayEpisode:
             "gold_value": self.gold_value,
             "search_attempts": [attempt.to_dict() for attempt in self.search_attempts],
         }
+        if self.identity_label:
+            payload["identity_label"] = self.identity_label
+        if self.case_type:
+            payload["case_type"] = self.case_type
+        if self.expected_decision:
+            payload["expected_decision"] = self.expected_decision
+        if self.expected_abstain is not None:
+            payload["expected_abstain"] = self.expected_abstain
+        if self.truth_source_type:
+            payload["truth_source_type"] = self.truth_source_type
+        if self.label_origin:
+            payload["label_origin"] = self.label_origin
+        if self.website_label:
+            payload["website_label"] = self.website_label
+        if self.difficulty:
+            payload["difficulty"] = self.difficulty
+        if self.review_status:
+            payload["review_status"] = self.review_status
+        if self.reviewer_notes:
+            payload["reviewer_notes"] = self.reviewer_notes
         if self.final_decision is not None:
             payload["final_decision"] = self.final_decision.to_dict()
         return payload
@@ -189,6 +225,16 @@ class ReplayEpisode:
             gold_value=str(payload.get("gold_value", "")),
             search_attempts=[SearchAttempt.from_dict(attempt) for attempt in attempts or []],
             final_decision=FinalDecision.from_dict(final_decision) if isinstance(final_decision, dict) else None,
+            identity_label=str(payload.get("identity_label", "")),
+            case_type=str(payload.get("case_type", "")),
+            expected_decision=str(payload.get("expected_decision", "")),
+            expected_abstain=payload.get("expected_abstain") if isinstance(payload.get("expected_abstain"), bool) else None,
+            truth_source_type=str(payload.get("truth_source_type", "")),
+            label_origin=str(payload.get("label_origin", "")),
+            website_label=str(payload.get("website_label", "")),
+            difficulty=str(payload.get("difficulty", "")),
+            review_status=str(payload.get("review_status", "")),
+            reviewer_notes=str(payload.get("reviewer_notes", "")),
         )
 
 
@@ -246,4 +292,3 @@ def replay_episode_summary(episode: ReplayEpisode) -> dict[str, Any]:
         "page_count": sum(len(attempt.fetched_pages) for attempt in episode.search_attempts),
         "has_final_decision": episode.final_decision is not None,
     }
-
