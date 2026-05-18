@@ -50,57 +50,13 @@ AGGREGATOR_DOMAINS = {
 GOVERNMENT_SUFFIXES = (".gov", ".ca.gov", ".nyc.gov")
 GOOGLE_PLACES_DOMAINS = {"google.com", "maps.google.com"}
 OSM_DOMAINS = {"openstreetmap.org", "osm.org"}
-BUSINESS_REGISTRY_DOMAINS = {
-    "bbb.org",
-    "opencorporates.com",
-    "bizapedia.com",
-    "dnb.com",
-    "corporationwiki.com",
-}
-EXCLUDED_AGGREGATOR_SITES = (
-    "yelp.com",
-    "tripadvisor.com",
-    "facebook.com",
-    "instagram.com",
-    "doordash.com",
-    "ubereats.com",
-    "grubhub.com",
-)
+BUSINESS_REGISTRY_DOMAINS = {"bbb.org", "opencorporates.com", "bizapedia.com", "dnb.com", "corporationwiki.com"}
+EXCLUDED_AGGREGATOR_SITES = ("yelp.com", "tripadvisor.com", "facebook.com", "instagram.com", "doordash.com", "ubereats.com", "grubhub.com")
 SEARCH_OPERATORS = ("site:", "-site:", "intitle:", "inurl:", "OR", '"')
 CONTACT_HINTS = ("contact", "about", "locations", "location", "store locator", "store-locator", "directions")
-CATEGORY_HINTS = ("services", "menu", "about", "schema.org", "ld+json")
 FRESH_HINTS = ("current", "updated", "open now", "now open", "hours", "verified", "today", "latest")
-WEBSITE_PATH_HINTS = {
-    "contact": 0.05,
-    "about": 0.04,
-    "locations": 0.04,
-    "location": 0.03,
-    "store-locator": 0.05,
-    "store locator": 0.05,
-    "hours": 0.03,
-    "menu": 0.03,
-    "services": 0.03,
-    "directions": 0.03,
-    "home": 0.02,
-}
-STALE_HINTS = (
-    "permanently closed",
-    "temporarily closed",
-    "moved",
-    "former",
-    "formerly",
-    "old location",
-    "under new ownership",
-    "duplicate listing",
-    "claimed listing",
-    "directory",
-    "listing",
-    "reviews",
-    "review",
-    "aggregate",
-    "outdated",
-    "stale",
-)
+WEBSITE_PATH_HINTS = {"contact": 0.05, "about": 0.04, "locations": 0.04, "location": 0.03, "store-locator": 0.05, "store locator": 0.05, "hours": 0.03, "menu": 0.03, "services": 0.03, "directions": 0.03, "home": 0.02}
+STALE_HINTS = ("permanently closed", "temporarily closed", "moved", "former", "formerly", "old location", "under new ownership", "duplicate listing", "claimed listing", "directory", "listing", "reviews", "review", "aggregate", "outdated", "stale")
 
 
 @dataclass(frozen=True)
@@ -165,15 +121,19 @@ def loose_query(place: dict[str, str]) -> str:
     return " ".join(filter(None, [place.get("name", ""), place.get("city", ""), place.get("region", "")])).strip()
 
 
+def _exclusions() -> str:
+    return " ".join(f"-site:{domain}" for domain in EXCLUDED_AGGREGATOR_SITES)
+
+
 def targeted_queries(place: dict[str, str], attribute: str) -> list[str]:
     name = quoted(place.get("name"))
     city = quoted(place.get("city"))
     region = quoted(place.get("region"))
     address = quoted(place.get("address"))
     phone = quoted(place.get("phone"))
-    website = place.get("website", "")
-    domain = _known_domain(website)
-    exclusions = " ".join(f"-site:{domain}" for domain in EXCLUDED_AGGREGATOR_SITES)
+    domain = _known_domain(place.get("website", ""))
+    exclusions = _exclusions()
+    queries: list[str]
 
     if attribute == "website":
         queries = [
@@ -185,90 +145,76 @@ def targeted_queries(place: dict[str, str], attribute: str) -> list[str]:
             f"site:bbb.org {name} {city}",
         ]
         if domain:
-            queries.extend(
-                [
-                    _site_query(domain, "contact OR about OR locations OR store-locator"),
-                    _site_query(domain, "schema.org OR ld+json"),
-                    _site_query(domain, phone) if phone else "",
-                ]
-            )
+            queries.extend([_site_query(domain, "contact OR about OR locations OR store-locator"), _site_query(domain, "schema.org OR ld+json"), _site_query(domain, phone) if phone else ""])
     elif attribute == "phone":
-        queries = [
-            f"{phone} {name} official contact",
-            f"{name} {city} phone {exclusions}",
-            f"{name} {city} contact OR hours {exclusions}",
-            f"site:.gov {name} {city} license OR registry",
-            f"site:google.com/maps {name} {city} phone",
-            f"site:openstreetmap.org {name} {city} phone",
-        ]
+        queries = [f"{phone} {name} official contact", f"{name} {city} phone {exclusions}", f"{name} {city} contact OR hours {exclusions}", f"site:.gov {name} {city} license OR registry", f"site:google.com/maps {name} {city} phone", f"site:openstreetmap.org {name} {city} phone"]
         if domain:
-            queries.extend(
-                [
-                    _site_query(domain, phone),
-                    _site_query(domain, "contact OR locations OR hours OR tel"),
-                    _site_query(domain, "schema.org OR ld+json"),
-                ]
-            )
+            queries.extend([_site_query(domain, phone), _site_query(domain, "contact OR locations OR hours OR tel"), _site_query(domain, "schema.org OR ld+json")])
     elif attribute == "address":
-        queries = [
-            f"{name} {address}",
-            f"{name} {city} address {exclusions}",
-            f"{address} {city} {region} {exclusions}",
-            f"site:.gov {name} {city} address OR permit OR license",
-        ]
+        queries = [f"{name} {address}", f"{name} {city} address {exclusions}", f"{address} {city} {region} {exclusions}", f"site:.gov {name} {city} address OR permit OR license"]
         if domain:
-            queries.extend(
-                [
-                    _site_query(domain, address),
-                    _site_query(domain, "directions OR locations OR contact"),
-                    _site_query(domain, "schema.org OR ld+json"),
-                ]
-            )
+            queries.extend([_site_query(domain, address), _site_query(domain, "directions OR locations OR contact"), _site_query(domain, "schema.org OR ld+json")])
     elif attribute == "category":
-        queries = [
-            f"{name} {city} services menu about {exclusions}",
-            f"{name} {city} {region} category",
-            f"{name} {city} schema.org LocalBusiness OR Organization {exclusions}",
-            f"site:openstreetmap.org {name} {city}",
-        ]
+        queries = [f"{name} {city} services menu about {exclusions}", f"{name} {city} {region} category", f"{name} {city} schema.org LocalBusiness OR Organization {exclusions}", f"site:openstreetmap.org {name} {city}"]
         if domain:
-            queries.extend(
-                [
-                    _site_query(domain, "about OR services OR menu"),
-                    _site_query(domain, "schema.org LocalBusiness OR Organization"),
-                    _site_query(domain, "contact OR locations"),
-                ]
-            )
+            queries.extend([_site_query(domain, "about OR services OR menu"), _site_query(domain, "schema.org LocalBusiness OR Organization"), _site_query(domain, "contact OR locations")])
     elif attribute == "name":
-        queries = [
-            f"{address} {city} business name",
-            f"{phone} {address}",
-            f"{name} {address} {city} {exclusions}",
-            f"{name} {city} official OR contact {exclusions}",
-            f"site:.gov {address} {city} business OR license",
-            f"site:opencorporates.com {name} {region}",
-            f"site:bbb.org {name} {city}",
-            f"site:google.com/maps {name} {address}",
-            f"site:openstreetmap.org {address} {city}",
-        ]
+        queries = [f"{address} {city} business name", f"{phone} {address}", f"{name} {address} {city} {exclusions}", f"{name} {city} official OR contact {exclusions}", f"site:.gov {address} {city} business OR license", f"site:opencorporates.com {name} {region}", f"site:bbb.org {name} {city}", f"site:google.com/maps {name} {address}", f"site:openstreetmap.org {address} {city}"]
         if domain:
-            queries.extend(
-                [
-                    _site_query(domain, "about OR contact OR locations"),
-                    _site_query(domain, "schema.org LocalBusiness OR Organization"),
-                    _site_query(domain, name),
-                ]
-            )
+            queries.extend([_site_query(domain, "about OR contact OR locations"), _site_query(domain, "schema.org LocalBusiness OR Organization"), _site_query(domain, name)])
     else:
         queries = [loose_query(place)]
     return [query.strip() for query in queries if query.strip()]
 
 
 def build_query_plan(place: dict[str, str], attribute: str) -> DorkQueryPlan:
-    loose = loose_query(place)
-    targeted = targeted_queries(place, attribute)
-    preferred_sources = ["official_site", "government", "business_registry", "google_places", "osm", "social", "aggregator"]
-    return DorkQueryPlan(attribute=attribute, loose=loose, targeted=targeted, preferred_sources=preferred_sources)
+    return DorkQueryPlan(
+        attribute=attribute,
+        loose=loose_query(place),
+        targeted=targeted_queries(place, attribute),
+        preferred_sources=["official_site", "government", "business_registry", "google_places", "osm", "social", "aggregator"],
+    )
+
+
+def _website_validation_queries(place: dict[str, str], attribute: str) -> list[str]:
+    if attribute not in {"website", "name", "category"}:
+        return []
+    name = quoted(place.get("name"))
+    city = quoted(place.get("city"))
+    address = quoted(place.get("address"))
+    phone = quoted(place.get("phone"))
+    domain = _known_domain(place.get("website", ""))
+    queries = [
+        _site_query(domain, name) if domain and name else "",
+        _site_query(domain, address) if domain and address else "",
+        _site_query(domain, phone) if domain and phone else "",
+        _site_query(domain, "contact OR about OR locations") if domain else "",
+        _site_query(domain, "schema.org OR ld+json") if domain else "",
+        f"{name} {city} official website {_exclusions()}",
+        f"{phone} {name}" if phone and name else "",
+    ]
+    return [query.strip() for query in queries if query.strip()]
+
+
+def _identity_drift_queries(place: dict[str, str], attribute: str) -> list[str]:
+    if attribute not in {"website", "name", "address", "category"}:
+        return []
+    name = quoted(place.get("name"))
+    city = quoted(place.get("city"))
+    address = quoted(place.get("address"))
+    domain = _known_domain(place.get("website", ""))
+    queries = [
+        f"{name} {city} moved to",
+        f"{name} {city} formerly",
+        f"{name} {city} under new ownership",
+        f"{address} formerly" if address else "",
+        f"{address} grand opening" if address else "",
+        f"{name} permanently closed",
+        _site_query(domain, "we moved") if domain else "",
+        _site_query(domain, "new location") if domain else "",
+        _site_query(domain, "formerly") if domain else "",
+    ]
+    return [query.strip() for query in queries if query.strip()]
 
 
 def build_multi_layer_plan(place: dict[str, str], attribute: str) -> MultiLayerDorkPlan:
@@ -277,92 +223,37 @@ def build_multi_layer_plan(place: dict[str, str], attribute: str) -> MultiLayerD
     region = quoted(place.get("region"))
     address = quoted(place.get("address"))
     phone = quoted(place.get("phone"))
-    website = place.get("website", "")
-    domain = _known_domain(website)
+    domain = _known_domain(place.get("website", ""))
 
-    official_layers = DorkLayer(
-        name="official",
-        queries=targeted_queries(place, attribute),
-        preferred_sources=["official_site", "government", "business_registry"],
-    )
+    official_layer = DorkLayer("official", targeted_queries(place, attribute), ["official_site", "government", "business_registry"])
+    website_validation_layer = DorkLayer("website_validation", _website_validation_queries(place, attribute), ["official_site"])
+    identity_drift_layer = DorkLayer("identity_drift", _identity_drift_queries(place, attribute), ["official_site", "government", "business_registry", "google_places"])
 
     corroboration_queries: list[str] = []
     if attribute in {"website", "phone", "address"}:
-        corroboration_queries.extend(
-            [
-                f"{name} {city} {region} official OR contact OR about",
-                f"{name} {address} {city}",
-                f"{phone} {name}" if phone else "",
-                f"site:google.com/maps {name} {city}",
-                f"site:openstreetmap.org {name} {city}",
-                _site_query(domain, "contact OR about OR locations") if domain else "",
-            ]
-        )
+        corroboration_queries.extend([f"{name} {city} {region} official OR contact OR about", f"{name} {address} {city}", f"{phone} {name}" if phone else "", f"site:google.com/maps {name} {city}", f"site:openstreetmap.org {name} {city}", _site_query(domain, "contact OR about OR locations") if domain else ""])
     elif attribute == "category":
-        corroboration_queries.extend(
-            [
-                f"{name} {city} services OR menu OR about",
-                f"site:{domain} schema.org LocalBusiness" if domain else "",
-                f"site:openstreetmap.org {name} {city}",
-                f"site:google.com/maps {name} {city} category",
-                _site_query(domain, "services OR menu OR about") if domain else "",
-            ]
-        )
+        corroboration_queries.extend([f"{name} {city} services OR menu OR about", f"site:{domain} schema.org LocalBusiness" if domain else "", f"site:openstreetmap.org {name} {city}", f"site:google.com/maps {name} {city} category", _site_query(domain, "services OR menu OR about") if domain else ""])
     else:
-        corroboration_queries.extend(
-            [
-                f"{name} {city}",
-                f"{address} {city}",
-                f"site:google.com/maps {name}",
-                _site_query(domain, "about OR contact OR locations") if domain else "",
-            ]
-        )
+        corroboration_queries.extend([f"{name} {city}", f"{address} {city}", f"site:google.com/maps {name}", _site_query(domain, "about OR contact OR locations") if domain else ""])
+    corroboration_layer = DorkLayer("corroboration", [q.strip() for q in corroboration_queries if q.strip()], ["official_site", "google_places", "osm", "social"])
 
-    corroboration_layer = DorkLayer(
-        name="corroboration",
-        queries=[q.strip() for q in corroboration_queries if q.strip()],
-        preferred_sources=["official_site", "google_places", "osm", "social"],
-    )
-
-    freshness_queries: list[str] = []
     if attribute in {"website", "phone", "address"}:
-        freshness_queries.extend(
-            [
-                f"{name} {city} open now hours contact",
-                f"{name} {city} updated contact hours",
-                f"{name} {city} current address phone",
-                f"{name} {city} moved OR permanently closed OR formerly",
-            ]
-        )
+        freshness_queries = [f"{name} {city} open now hours contact", f"{name} {city} updated contact hours", f"{name} {city} current address phone", f"{name} {city} moved OR permanently closed OR formerly"]
     elif attribute == "category":
-        freshness_queries.extend(
-            [
-                f"{name} {city} current menu services hours",
-                f"{name} {city} updated about services",
-                f"site:{domain} hours menu updated" if domain else "",
-                f"{name} {city} new menu OR current services OR latest",
-            ]
-        )
+        freshness_queries = [f"{name} {city} current menu services hours", f"{name} {city} updated about services", f"site:{domain} hours menu updated" if domain else "", f"{name} {city} new menu OR current services OR latest"]
     else:
-        freshness_queries.extend([f"{name} {city} updated", f"{name} {city} current", f"{name} {city} former OR formerly OR moved"])
+        freshness_queries = [f"{name} {city} updated", f"{name} {city} current", f"{name} {city} former OR formerly OR moved"]
+    freshness_layer = DorkLayer("freshness", [q.strip() for q in freshness_queries if q.strip()], ["official_site", "google_places", "osm"])
+    fallback_layer = DorkLayer("fallback", [loose_query(place) or domain or address or phone], ["google_places", "osm", "social", "aggregator"])
 
-    freshness_layer = DorkLayer(
-        name="freshness",
-        queries=[q.strip() for q in freshness_queries if q.strip()],
-        preferred_sources=["official_site", "google_places", "osm"],
-    )
-
-    fallback_anchor = loose_query(place) or domain or website or address or phone
-    fallback_layer = DorkLayer(
-        name="fallback",
-        queries=[fallback_anchor],
-        preferred_sources=["google_places", "osm", "social", "aggregator"],
-    )
-
-    return MultiLayerDorkPlan(
-        attribute=attribute,
-        layers=[official_layers, corroboration_layer, freshness_layer, fallback_layer],
-    )
+    layers = [official_layer]
+    if website_validation_layer.queries:
+        layers.append(website_validation_layer)
+    if identity_drift_layer.queries:
+        layers.append(identity_drift_layer)
+    layers.extend([corroboration_layer, freshness_layer, fallback_layer])
+    return MultiLayerDorkPlan(attribute=attribute, layers=layers)
 
 
 def classify_source(url: str) -> str:
@@ -379,7 +270,7 @@ def classify_source(url: str) -> str:
     if domain in OSM_DOMAINS or domain.endswith(".openstreetmap.org"):
         return "osm"
     if any(domain == agg or domain.endswith(f".{agg}") for agg in AGGREGATOR_DOMAINS):
-        return "aggregator" if domain not in {"facebook.com", "instagram.com"} else "social"
+        return "social" if domain in {"facebook.com", "instagram.com"} else "aggregator"
     if domain:
         return "official_site"
     return "unknown"
@@ -395,72 +286,25 @@ def _has_quoted_anchor(query: str) -> bool:
 
 def _has_authority_surface(query: str) -> bool:
     lowered = query.lower()
-    return any(
-        token in lowered
-        for token in (
-            "official",
-            "site:",
-            "contact",
-            "locations",
-            "directions",
-            "schema.org",
-            "license",
-            "registry",
-            "permit",
-        )
-    )
+    return any(token in lowered for token in ("official", "site:", "contact", "locations", "directions", "schema.org", "license", "registry", "permit", "moved", "formerly", "closed"))
 
 
 def audit_multi_layer_plan(plan: MultiLayerDorkPlan) -> DorkPlanAudit:
     layer_queries = [(layer.name, query) for layer in plan.layers for query in layer.queries]
     total = len(layer_queries)
     if total == 0:
-        return DorkPlanAudit(
-            attribute=plan.attribute,
-            total_queries=0,
-            operator_queries=0,
-            quoted_anchor_queries=0,
-            site_restricted_queries=0,
-            exclusion_queries=0,
-            fallback_queries=0,
-            authority_queries=0,
-            operator_coverage=0.0,
-            quoted_anchor_coverage=0.0,
-            site_restricted_coverage=0.0,
-            exclusion_coverage=0.0,
-            authority_coverage=0.0,
-            fallback_share=0.0,
-        )
-
+        return DorkPlanAudit(plan.attribute, 0, 0, 0, 0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     operator_queries = sum(1 for _, query in layer_queries if _has_operator(query))
     quoted_anchor_queries = sum(1 for _, query in layer_queries if _has_quoted_anchor(query))
     site_restricted_queries = sum(1 for _, query in layer_queries if "site:" in query)
     exclusion_queries = sum(1 for _, query in layer_queries if "-site:" in query)
     fallback_queries = sum(1 for layer, _ in layer_queries if layer == "fallback")
     authority_queries = sum(1 for _, query in layer_queries if _has_authority_surface(query))
-    return DorkPlanAudit(
-        attribute=plan.attribute,
-        total_queries=total,
-        operator_queries=operator_queries,
-        quoted_anchor_queries=quoted_anchor_queries,
-        site_restricted_queries=site_restricted_queries,
-        exclusion_queries=exclusion_queries,
-        fallback_queries=fallback_queries,
-        authority_queries=authority_queries,
-        operator_coverage=operator_queries / total,
-        quoted_anchor_coverage=quoted_anchor_queries / total,
-        site_restricted_coverage=site_restricted_queries / total,
-        exclusion_coverage=exclusion_queries / total,
-        authority_coverage=authority_queries / total,
-        fallback_share=fallback_queries / total,
-    )
+    return DorkPlanAudit(plan.attribute, total, operator_queries, quoted_anchor_queries, site_restricted_queries, exclusion_queries, fallback_queries, authority_queries, operator_queries / total, quoted_anchor_queries / total, site_restricted_queries / total, exclusion_queries / total, authority_queries / total, fallback_queries / total)
 
 
 def audit_dorking_plans(places: list[dict[str, str]], attributes: list[str]) -> dict[str, object]:
-    audits: list[DorkPlanAudit] = []
-    for place in places:
-        for attribute in attributes:
-            audits.append(audit_multi_layer_plan(build_multi_layer_plan(place, attribute)))
+    audits = [audit_multi_layer_plan(build_multi_layer_plan(place, attribute)) for place in places for attribute in attributes]
     totals = {
         "plans": len(audits),
         "queries": sum(audit.total_queries for audit in audits),
@@ -480,34 +324,15 @@ def audit_dorking_plans(places: list[dict[str, str]], attributes: list[str]) -> 
         "authority_coverage": totals["authority_queries"] / query_count,
         "fallback_share": totals["fallback_queries"] / query_count,
     }
-    return {
-        "summary": summary,
-        "totals": totals,
-        "plans": [asdict(audit) for audit in audits],
-    }
+    return {"summary": summary, "totals": totals, "plans": [asdict(audit) for audit in audits]}
 
 
 def rank_source(url: str, page_text: str = "", query: str = "") -> float:
-    """Return a coarse source authority score for a fetched page.
-
-    The score is intentionally simple: it lets the resolver prefer official or
-    government evidence, then use page-level attribute evidence to break ties.
-    """
     source_type = classify_source(url)
     parsed = urlparse(url if "://" in url else f"https://{url}")
     domain = parsed.netloc.lower().removeprefix("www.")
     path = parsed.path.lower()
-    base = {
-        "official_site": 0.78,
-        "government": 0.96,
-        "business_registry": 0.9,
-        "google_places": 0.82,
-        "osm": 0.7,
-        "social": 0.45,
-        "aggregator": 0.35,
-        "unknown": 0.2,
-    }.get(source_type, 0.2)
-
+    base = {"official_site": 0.78, "government": 0.96, "business_registry": 0.9, "google_places": 0.82, "osm": 0.7, "social": 0.45, "aggregator": 0.35, "unknown": 0.2}.get(source_type, 0.2)
     text = (page_text or "").lower()
     query_text = (query or "").lower()
     bonus = 0.0
@@ -534,7 +359,6 @@ def rank_source(url: str, page_text: str = "", query: str = "") -> float:
         bonus -= 0.08
     if "official" in query_text and source_type == "official_site":
         bonus += 0.04
-    if query and query.lower() in text:
-        bonus += 0.02
-
-    return min(1.0, base + bonus)
+    if any(token in query_text for token in ("moved", "formerly", "closed")) and any(token in text for token in ("moved", "formerly", "closed")):
+        bonus += 0.03
+    return min(1.0, max(0.0, base + bonus))
