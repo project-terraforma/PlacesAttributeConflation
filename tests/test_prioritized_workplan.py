@@ -61,3 +61,52 @@ def test_build_prioritized_workplan_keeps_queries_grouped_and_selects_p0_first(t
 
     saved_manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
     assert saved_manifest["ranking_strategy"] == "pac_priority_bucket"
+
+
+def test_evidence_template_query_selection_caps_duplicates_with_case_specific_fallback(tmp_path):
+    rows = []
+    for idx in range(5):
+        rows.extend(
+            [
+                {
+                    "id": f"web-{idx}",
+                    "attribute": "website",
+                    "current_value": f"https://current-{idx}.example",
+                    "base_value": f"https://base-{idx}.example",
+                    "prediction": f"https://base-{idx}.example",
+                    "correct": "false",
+                    "layer": "official",
+                    "query": "generic official query",
+                },
+                {
+                    "id": f"web-{idx}",
+                    "attribute": "website",
+                    "current_value": f"https://current-{idx}.example",
+                    "base_value": f"https://base-{idx}.example",
+                    "prediction": f"https://base-{idx}.example",
+                    "correct": "false",
+                    "layer": "fallback",
+                    "query": "generic fallback query",
+                },
+            ]
+        )
+
+    manifest = build_prioritized_evidence_workplan(
+        rows,
+        tmp_path,
+        cases_per_batch=5,
+        batch_count=1,
+        max_template_query_duplicates=2,
+    )
+
+    with (tmp_path / "evidence_template_001.csv").open(newline="", encoding="utf-8") as handle:
+        template_rows = list(csv.DictReader(handle))
+
+    queries = [row["query"] for row in template_rows]
+    assert queries.count("generic official query") == 2
+    assert queries.count("generic fallback query") == 2
+    assert any("current-4.example" in query for query in queries)
+    assert manifest["max_template_query_duplicates"] == 2
+    assert manifest["template_max_query_occurrences"] == 2
+    assert manifest["template_duplicate_query_count"] == 2
+    assert manifest["most_common_template_queries"][0] == {"query": "generic fallback query", "count": 2}

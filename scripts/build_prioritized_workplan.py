@@ -22,6 +22,7 @@ def main() -> int:
     parser.add_argument("--output-dir", required=True, help="Output directory")
     parser.add_argument("--cases-per-batch", type=int, default=25)
     parser.add_argument("--batch-count", type=int, default=2)
+    parser.add_argument("--max-template-query-duplicates", type=int, default=3)
     args = parser.parse_args()
 
     manifest = build_prioritized_evidence_workplan_from_csv(
@@ -29,6 +30,7 @@ def main() -> int:
         args.output_dir,
         cases_per_batch=args.cases_per_batch,
         batch_count=args.batch_count,
+        max_template_query_duplicates=args.max_template_query_duplicates,
     )
     print(json.dumps(manifest, indent=2, sort_keys=True))
     return 0

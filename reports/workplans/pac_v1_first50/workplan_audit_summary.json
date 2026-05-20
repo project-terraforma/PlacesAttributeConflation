@@ -1,0 +1,184 @@
+{
+  "batch_duplicate_query_count": 294,
+  "batch_duplicate_query_rate": 0.98,
+  "duplicate_query_count": 294,
+  "duplicate_query_rate": 0.98,
+  "empty_query_count": 0,
+  "gate": {
+    "checks": {
+      "duplicate_query_rate": true,
+      "empty_query_count": true,
+      "missing_priority_bucket_count": true,
+      "p0_case_share": true,
+      "website_case_share": true
+    },
+    "name": "first50",
+    "passed": true,
+    "query_duplicate_rate_evaluated": 0.24,
+    "query_evaluation_scope": "evidence_template",
+    "template_duplicate_query_cap_respected": true,
+    "thresholds": {
+      "max_duplicate_query_rate": 0.2,
+      "max_empty_query_count": 0,
+      "max_missing_priority_bucket_count": 0,
+      "max_template_query_duplicates": 3,
+      "min_p0_case_share": 0.6,
+      "min_website_case_share": 0.7
+    }
+  },
+  "input_count": 2,
+  "inputs": [
+    "reports/workplans/pac_v1_first50/batch_001.csv",
+    "reports/workplans/pac_v1_first50/batch_002.csv"
+  ],
+  "max_query_occurrences": 50,
+  "missing_case_type_guess_count": 0,
+  "missing_priority_bucket_count": 0,
+  "missing_website_label_guess_for_website_count": 0,
+  "most_common_queries": [
+    {
+      "count": 50,
+      "query": "-site:yelp.com -site:tripadvisor.com -site:facebook.com -site:instagram.com -site:doordash.com -site:ubereats.com -site:grubhub.com"
+    },
+    {
+      "count": 50,
+      "query": "intitle:  contact OR locations -site:yelp.com -site:tripadvisor.com -site:facebook.com -site:instagram.com -site:doordash.com -site:ubereats.com -site:grubhub.com"
+    },
+    {
+      "count": 50,
+      "query": "inurl:locations   contact"
+    },
+    {
+      "count": 50,
+      "query": "official website -site:yelp.com -site:tripadvisor.com -site:facebook.com -site:instagram.com -site:doordash.com -site:ubereats.com -site:grubhub.com"
+    },
+    {
+      "count": 50,
+      "query": "site:.gov   business license OR registry"
+    },
+    {
+      "count": 50,
+      "query": "site:bbb.org"
+    }
+  ],
+  "most_common_template_queries": [
+    {
+      "count": 3,
+      "query": "-site:yelp.com -site:tripadvisor.com -site:facebook.com -site:instagram.com -site:doordash.com -site:ubereats.com -site:grubhub.com"
+    },
+    {
+      "count": 3,
+      "query": "intitle:  contact OR locations -site:yelp.com -site:tripadvisor.com -site:facebook.com -site:instagram.com -site:doordash.com -site:ubereats.com -site:grubhub.com"
+    },
+    {
+      "count": 3,
+      "query": "inurl:locations   contact"
+    },
+    {
+      "count": 3,
+      "query": "official website -site:yelp.com -site:tripadvisor.com -site:facebook.com -site:instagram.com -site:doordash.com -site:ubereats.com -site:grubhub.com"
+    },
+    {
+      "count": 3,
+      "query": "site:.gov   business license OR registry"
+    },
+    {
+      "count": 3,
+      "query": "site:bbb.org"
+    },
+    {
+      "count": 1,
+      "query": "beautyspace.ch/kosmetikstudio-zuerich-am-hauptbahnhof OR libertyspa.ch official website"
+    },
+    {
+      "count": 1,
+      "query": "biomarkt.de OR denns-biomarkt.de official website"
+    },
+    {
+      "count": 1,
+      "query": "boeckmann-mode.de/lingerie.html OR oberschorfheide.de official website"
+    },
+    {
+      "count": 1,
+      "query": "book.octotable.com/otb/form/index.xhtml OR ristorantecavour-todi.com official website"
+    }
+  ],
+  "p0_case_share": 1.0,
+  "rows_by_attribute": {
+    "website": 300
+  },
+  "rows_by_layer": {
+    "official": 300
+  },
+  "rows_by_priority_bucket": {
+    "P0_WEBSITE_BASELINE_WRONG": 300
+  },
+  "rows_total": 300,
+  "selected_attributes": [
+    "website"
+  ],
+  "selected_case_ids": [
+    "08f08ed358889889037e291e52eb62a5",
+    "08f11aa78c7ad0e5034e75b4b7abd882",
+    "08f12d87937886ed03cf23f162e10f02",
+    "08f12db34575e253037b6f6469146181",
+    "08f186549e3445160349ba90d3aa7e20",
+    "08f186b554c4e0ce03502e62836c2157",
+    "08f194ada05a3a6003b9a28bab309ec8",
+    "08f194adae234690030807b89af95082",
+    "08f194db5b6b41b603a43ab00a1af2f2",
+    "08f19529a04450ce03f4b74fa2157fcd",
+    "08f1969c9b6648a603bcbfe76a19c00c",
+    "08f1e002d2532416034e929d26e8c0f7",
+    "08f1e037ac61a06603d8c3cb00ff9a6b",
+    "08f1e35418b8115d03d75b4f91514ad7",
+    "08f1e80505821ce503d0fee349992585",
+    "08f1e8050dc5e46303ce4d05bd79e0d9",
+    "08f1e819a260b74d031a7c47fed5a746",
+    "08f1e832888c520a0354f30351c8e188",
+    "08f1e84356611acd0351cc53c2f7a806",
+    "08f1e8439298263003d04efb18ab2497",
+    "08f1e84ab06b5a88032fba924b9dab12",
+    "08f1e88cd5cb0735039d5d6c5e702596",
+    "08f1ea3496a5164d03d849108a98dfbc",
+    "08f1ea3c4ec222d003c73c090231dece",
+    "08f1ea5730172069034b97bd17a49833",
+    "08f1eb535017124e034ea6a8818ccedc",
+    "08f1ecba4972b364039b1dc77b0a0124",
+    "08f1f0061eb51556038f196e106d4189",
+    "08f1f1046938a0020354dde363732179",
+    "08f1f12cd0dad11b03c29971654cc5a7",
+    "08f1f13d06cdb4dd03c2287ba2cf48a4",
+    "08f1f15175db63730320e96a1db6006b",
+    "08f1f1a732635ab303e43536cf885561",
+    "08f1f1a891a75b4b032b37e00bc5dd40",
+    "08f1f1e5752d068203c784e8f79a40f3",
+    "08f1f2e4c52535b303d6e2707a0f297b",
+    "08f1f8120960ecb603778517e167edf6",
+    "08f1f852314e30580373a86cedf0b53a",
+    "08f1f85ae5201aea032be7da504ebb74",
+    "08f1f88b66880d2e0385b0548cd07ca6",
+    "08f1f8d54b60445a0306d353c45e27b1",
+    "08f1f8ed95cc834803b28d87d8bfefc0",
+    "08f1f981762a894b0367e8c49d5125c5",
+    "08f1f9925a0102b40334fdcbede94f22",
+    "08f1f9b080b03da00364ea8dc06fb226",
+    "08f1f9b76a9252050316e85338ec5664",
+    "08f1fa112e4d965b03b45fbf4da05d10",
+    "08f1fa19882dc90203f8a84197143081",
+    "08f1fa570ed43ca203d8ee44e6490fe0",
+    "08f1fa59513a595d032fdd2acd350b85"
+  ],
+  "template_duplicate_query_cap_respected": true,
+  "template_duplicate_query_count": 12,
+  "template_duplicate_query_rate": 0.24,
+  "template_input_count": 2,
+  "template_inputs": [
+    "reports/workplans/pac_v1_first50/evidence_template_001.csv",
+    "reports/workplans/pac_v1_first50/evidence_template_002.csv"
+  ],
+  "template_max_query_occurrences": 3,
+  "template_rows_total": 50,
+  "unique_case_attribute_pairs": 50,
+  "website_case_share": 1.0
+}

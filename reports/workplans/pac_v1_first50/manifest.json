@@ -1,0 +1,110 @@
+{
+  "batch_count_requested": 2,
+  "candidate_case_attributes": 5077,
+  "cases_per_batch": 25,
+  "files": [
+    {
+      "batch": 1,
+      "case_attributes": 25,
+      "evidence_template": "reports/workplans/pac_v1_first50/evidence_template_001.csv",
+      "path": "reports/workplans/pac_v1_first50/batch_001.csv",
+      "priority_buckets": {
+        "P0_WEBSITE_BASELINE_WRONG": 25
+      },
+      "rows": 150,
+      "template_duplicate_query_count": 12,
+      "template_duplicate_query_rate": 0.48,
+      "template_rows": 25
+    },
+    {
+      "batch": 2,
+      "case_attributes": 25,
+      "evidence_template": "reports/workplans/pac_v1_first50/evidence_template_002.csv",
+      "path": "reports/workplans/pac_v1_first50/batch_002.csv",
+      "priority_buckets": {
+        "P0_WEBSITE_BASELINE_WRONG": 25
+      },
+      "rows": 150,
+      "template_duplicate_query_count": 0,
+      "template_duplicate_query_rate": 0.0,
+      "template_rows": 25
+    }
+  ],
+  "input_csv": "data/conflict_dorks_20260512_032836_536355.csv",
+  "input_rows": 30462,
+  "max_template_query_duplicates": 3,
+  "most_common_template_queries": [
+    {
+      "count": 3,
+      "query": "-site:yelp.com -site:tripadvisor.com -site:facebook.com -site:instagram.com -site:doordash.com -site:ubereats.com -site:grubhub.com"
+    },
+    {
+      "count": 3,
+      "query": "intitle:  contact OR locations -site:yelp.com -site:tripadvisor.com -site:facebook.com -site:instagram.com -site:doordash.com -site:ubereats.com -site:grubhub.com"
+    },
+    {
+      "count": 3,
+      "query": "inurl:locations   contact"
+    },
+    {
+      "count": 3,
+      "query": "official website -site:yelp.com -site:tripadvisor.com -site:facebook.com -site:instagram.com -site:doordash.com -site:ubereats.com -site:grubhub.com"
+    },
+    {
+      "count": 3,
+      "query": "site:.gov   business license OR registry"
+    },
+    {
+      "count": 3,
+      "query": "site:bbb.org"
+    },
+    {
+      "count": 1,
+      "query": "beautyspace.ch/kosmetikstudio-zuerich-am-hauptbahnhof OR libertyspa.ch official website"
+    },
+    {
+      "count": 1,
+      "query": "biomarkt.de OR denns-biomarkt.de official website"
+    },
+    {
+      "count": 1,
+      "query": "boeckmann-mode.de/lingerie.html OR oberschorfheide.de official website"
+    },
+    {
+      "count": 1,
+      "query": "book.octotable.com/otb/form/index.xhtml OR ristorantecavour-todi.com official website"
+    }
+  ],
+  "output_dir": "reports/workplans/pac_v1_first50",
+  "priority_summary": {
+    "p0_rows": 3504,
+    "rows_by_attribute": {
+      "address": 5712,
+      "category": 8496,
+      "name": 5304,
+      "phone": 6198,
+      "website": 4752
+    },
+    "rows_by_priority_bucket": {
+      "P0_IDENTITY_DRIFT_WEBSITE": 6,
+      "P0_WEBSITE_AGGREGATOR_OR_SOCIAL": 66,
+      "P0_WEBSITE_BASELINE_WRONG": 1050,
+      "P0_WEBSITE_CHAIN_OR_BRANCH": 762,
+      "P0_WEBSITE_MISSING": 1620,
+      "P1_CATEGORY_TAXONOMY": 8496,
+      "P1_NAME_IDENTITY": 5298,
+      "P1_WEBSITE_CONFLICT": 1254,
+      "P2_OTHER": 11910
+    },
+    "rows_total": 30462
+  },
+  "ranking_strategy": "pac_priority_bucket",
+  "selected_case_attributes": 50,
+  "selected_priority_buckets": {
+    "P0_WEBSITE_BASELINE_WRONG": 50
+  },
+  "selected_rows": 300,
+  "template_duplicate_query_count": 12,
+  "template_duplicate_query_rate": 0.24,
+  "template_max_query_occurrences": 3
+}
