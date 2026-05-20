@@ -32,7 +32,7 @@ Acknowledgements
 This work is meant to help real‑world challenges for conflating place attributes during Project Terra! We are peons just trying to improve the quality of the golden record.  
 
 #Sign your name under here! 
--Allan Dewey 
--Anthony Martinez 
+-Allan Dewey [Dropped]
+-Anthony Martinez [Certified Dork]
 
 
